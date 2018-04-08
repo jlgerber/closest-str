@@ -14,7 +14,7 @@ fn equalish(a: f64, b: f64) -> bool {
 /// list, ignoring case. Returns an Ok wrapped &str if succcessful, or an Err wrapped
 /// static &str if unsuccessful.
 #[allow(dead_code)]
-fn closest<'a,'b>(this: &'a str, thats: &[&'b str])->Result<&'b str,&'static str> {
+fn closest(this: &str, thats: &[&str])->Result<String, &'static str> {
     // conver this to lowercase because we don't want to consider case when
     // calculating the distance
     let this_lower = this.to_lowercase();
@@ -29,7 +29,7 @@ fn closest<'a,'b>(this: &'a str, thats: &[&'b str])->Result<&'b str,&'static str
     // Along the way, if we find an exact match, then return it.
     for word in &thats_lower {
         let answer = jaro_winkler(&this_lower, word);
-        if equalish(answer,1.0) { return Ok(thats[cnt]);}
+        if equalish(answer,1.0) { return Ok(String::from(thats[cnt]));}
         weights.push(answer);
         cnt += 1;
     }
@@ -42,7 +42,7 @@ fn closest<'a,'b>(this: &'a str, thats: &[&'b str])->Result<&'b str,&'static str
     if greatest == 0.0 {
         Err("Did not find any matches")
     } else {
-        Ok(thats[key])
+        Ok(String::from(thats[key]))
     }
 }
 
@@ -59,15 +59,16 @@ mod tests {
         let a = "fred";
         let b = ["frood","fr", "Fred"];
         let answer = closest(a, &b);
-        assert_eq!( Ok("Fred"), answer);
+        assert_eq!( Ok(s("Fred")), answer);
     }
 
     #[test]
     fn closest_strings() {
         let a = s("fred");
-        let b:Vec<String> = ["frood","fr", "Fred"].map(|x| x.to_string()).collet();
-        let answer = closest(&a, &b);
-        assert_eq!( Ok("Fred"), answer);
+        let b:Vec<String> = ["frood","fr", "Fred"].iter().map(|x| x.to_string()).collect();
+        let v2: Vec<&str> = b.iter().map(|s| &**s).collect();
+        let answer = closest(&a, &v2);
+        assert_eq!( Ok(s("Fred")), answer);
     }
 
     #[test]
@@ -83,6 +84,6 @@ mod tests {
         let a = "freddy";
         let b = ["frood","fr", "Fred"];
         let answer = closest(a, &b);
-        assert_eq!( Ok("Fred"), answer);
+        assert_eq!( Ok(s("Fred")), answer);
     }
 }
